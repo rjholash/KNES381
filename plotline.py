@@ -21,7 +21,7 @@ ci = t * s / np.sqrt(n)
 # plot the data and smoothed line with confidence interval
 plt.plot(x, y, 'o', alpha=0.5)
 plt.plot((x[window_size-1:]-.12), (smoothed -.0))
-# The bracketed x and smoothed values above with the -.1 and -.0 correction
+# The bracketed x and smoothed values above with the -.12 and -.0 correction
 # are included to left shift the smoothing line to compensate for the 
 # moving average needed to describe the smoothed line
 # this is also used below to shift the confidence interval plot
