@@ -4,3 +4,8 @@
 2) And this should add to the list
 + This will make a bullet list
 ... and this will indent three spaces
+  
+```diff
+- This line will be red (in diff syntax)
++ This line would be green 
+```
