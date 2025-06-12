@@ -187,8 +187,11 @@ p1 <- ggplot(runners_data, aes(x = running_economy_12kmh, y = race_time_10k,
   )
 
 # Convert to interactive plot
-ggplotly(p1, tooltip = "text") %>%
-  layout(showlegend = TRUE)
+if(require("plotly", quietly = TRUE)) {
+  ggplotly(p1, tooltip = "text")
+} else {
+  print(p1)
+}
 ```
 
 ---
@@ -197,8 +200,6 @@ ggplotly(p1, tooltip = "text") %>%
 
 ```{r gender-analysis, fig.cap="Comparison of physiological variables between male and female runners"}
 # Create multi-panel comparison
-library(gridExtra)
-
 p2 <- ggplot(runners_data, aes(x = gender, y = vo2_max, fill = gender)) +
   geom_boxplot(alpha = 0.7) +
   geom_jitter(width = 0.2, alpha = 0.5) +
@@ -223,7 +224,13 @@ p4 <- ggplot(runners_data, aes(x = gender, y = race_time_10k, fill = gender)) +
   theme_minimal() +
   theme(legend.position = "none")
 
-grid.arrange(p2, p3, p4, ncol = 3)
+if(require("gridExtra", quietly = TRUE)) {
+  gridExtra::grid.arrange(p2, p3, p4, ncol = 3)
+} else {
+  print(p2)
+  print(p3)
+  print(p4)
+}
 ```
 
 ---
@@ -231,15 +238,10 @@ grid.arrange(p2, p3, p4, ncol = 3)
 ## Training Volume Effects
 
 ```{r training-effects, fig.cap="Relationship between training volume and physiological adaptations"}
-# Create training volume categories
-runners_data <- runners_data %>%
-  mutate(
-    training_category = case_when(
-      training_volume < 6 -> "Low Volume (<6 hrs/week)",
-      training_volume < 10 -> "Moderate Volume (6-10 hrs/week)",
-      TRUE -> "High Volume (>10 hrs/week)"
-    )
-  )
+# Create training volume categories using base R
+runners_data$training_category <- ifelse(runners_data$training_volume < 6, "Low Volume (<6 hrs/week)",
+                                        ifelse(runners_data$training_volume < 10, "Moderate Volume (6-10 hrs/week)",
+                                               "High Volume (>10 hrs/week)"))
 
 # Multi-variable analysis
 p5 <- ggplot(runners_data, aes(x = training_volume, y = vo2_max, color = gender)) +
@@ -266,7 +268,12 @@ p6 <- ggplot(runners_data, aes(x = training_volume, y = running_economy_12kmh, c
   ) +
   theme_minimal()
 
-grid.arrange(p5, p6, ncol = 2)
+if(require("gridExtra", quietly = TRUE)) {
+  gridExtra::grid.arrange(p5, p6, ncol = 2)
+} else {
+  print(p5)
+  print(p6)
+}
 ```
 
 ---
@@ -283,14 +290,19 @@ performance_model <- lm(race_time_10k ~ vo2_max + running_economy_12kmh +
                        training_volume + gender + age, data = runners_data)
 
 # Model summary
-summary(performance_model) %>%
-  broom::tidy() %>%
-  kable(digits = 3, caption = "Multiple Regression Results: Predictors of 10K Race Time") %>%
-  kable_styling(bootstrap_options = c("striped", "hover"))
+model_summary <- summary(performance_model)
+
+if(require("broom", quietly = TRUE)) {
+  model_table <- broom::tidy(performance_model)
+  kable(model_table, digits = 3, caption = "Multiple Regression Results: Predictors of 10K Race Time")
+} else {
+  # Fallback to basic summary
+  print(model_summary)
+}
 
 # Model diagnostics
-cat("\nModel R-squared:", round(summary(performance_model)$r.squared, 3))
-cat("\nAdjusted R-squared:", round(summary(performance_model)$adj.r.squared, 3))
+cat("\nModel R-squared:", round(model_summary$r.squared, 3))
+cat("\nAdjusted R-squared:", round(model_summary$adj.r.squared, 3))
 cat("\nRMSE:", round(sqrt(mean(performance_model$residuals^2)), 2), "minutes")
 ```
 
@@ -306,26 +318,38 @@ $$+ `r round(coef(performance_model)[4], 2)` \times \text{Training Volume} + `r 
 # Performance Benchmarking
 
 ```{r benchmarking-table}
-# Create performance benchmarks
-benchmarks <- runners_data %>%
-  group_by(performance_level, gender) %>%
-  summarise(
-    n = n(),
-    avg_vo2max = round(mean(vo2_max), 1),
-    avg_economy = round(mean(running_economy_12kmh), 1),
-    avg_training = round(mean(training_volume), 1),
-    avg_race_time = round(mean(race_time_10k), 1),
-    .groups = "drop"
-  )
+# Create performance benchmarks using base R
+unique_combos <- unique(runners_data[, c("performance_level", "gender")])
+benchmarks <- data.frame()
 
-benchmarks %>%
-  kable(
-    col.names = c("Performance Level", "Gender", "N", "VO₂max", "Economy", 
-                  "Training (hrs)", "10K Time (min)"),
-    caption = "Performance Benchmarks by Level and Gender"
-  ) %>%
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) %>%
-  collapse_rows(columns = 1, valign = "top")
+for(i in 1:nrow(unique_combos)) {
+  subset_data <- runners_data[runners_data$performance_level == unique_combos$performance_level[i] & 
+                             runners_data$gender == unique_combos$gender[i], ]
+  
+  bench_row <- data.frame(
+    performance_level = unique_combos$performance_level[i],
+    gender = unique_combos$gender[i],
+    n = nrow(subset_data),
+    avg_vo2max = round(mean(subset_data$vo2_max), 1),
+    avg_economy = round(mean(subset_data$running_economy_12kmh), 1),
+    avg_training = round(mean(subset_data$training_volume), 1),
+    avg_race_time = round(mean(subset_data$race_time_10k), 1)
+  )
+  
+  benchmarks <- rbind(benchmarks, bench_row)
+}
+
+# Order by performance level
+level_order <- c("Elite", "Competitive", "Recreational", "Novice")
+benchmarks <- benchmarks[order(match(benchmarks$performance_level, level_order), benchmarks$gender), ]
+
+kable(
+  benchmarks,
+  col.names = c("Performance Level", "Gender", "N", "VO₂max", "Economy", 
+                "Training (hrs)", "10K Time (min)"),
+  caption = "Performance Benchmarks by Level and Gender",
+  row.names = FALSE
+)
 ```
 
 ---
@@ -333,32 +357,41 @@ benchmarks %>%
 # Interactive 3D Visualization
 
 ```{r 3d-plot, fig.cap="Interactive 3D visualization of the relationship between VO₂max, running economy, and performance"}
-library(plotly)
-
-plot_3d <- plot_ly(
-  runners_data, 
-  x = ~vo2_max, 
-  y = ~running_economy_12kmh, 
-  z = ~race_time_10k,
-  color = ~performance_level,
-  colors = c("#d62728", "#ff7f0e", "#2ca02c", "#1f77b4"),
-  size = ~training_volume,
-  text = ~paste("Subject:", subject_id, 
-                "<br>Gender:", gender,
-                "<br>Training:", training_volume, "hrs/week"),
-  hovertemplate = "%{text}<extra></extra>"
-) %>%
-  add_markers() %>%
-  layout(
-    title = "3D Relationship: VO₂max, Running Economy, and Performance",
-    scene = list(
-      xaxis = list(title = "VO₂max (ml/kg/min)"),
-      yaxis = list(title = "Running Economy (ml O₂/kg/min)"),
-      zaxis = list(title = "10K Race Time (minutes)")
+if(require("plotly", quietly = TRUE)) {
+  plot_3d <- plot_ly(
+    runners_data, 
+    x = ~vo2_max, 
+    y = ~running_economy_12kmh, 
+    z = ~race_time_10k,
+    color = ~performance_level,
+    colors = c("#d62728", "#ff7f0e", "#2ca02c", "#1f77b4"),
+    size = ~training_volume,
+    text = ~paste("Subject:", subject_id, 
+                  "<br>Gender:", gender,
+                  "<br>Training:", training_volume, "hrs/week"),
+    hovertemplate = "%{text}<extra></extra>"
+  ) 
+  
+  plot_3d <- plot_3d %>%
+    add_markers() %>%
+    layout(
+      title = "3D Relationship: VO₂max, Running Economy, and Performance",
+      scene = list(
+        xaxis = list(title = "VO₂max (ml/kg/min)"),
+        yaxis = list(title = "Running Economy (ml O₂/kg/min)"),
+        zaxis = list(title = "10K Race Time (minutes)")
+      )
     )
-  )
-
-plot_3d
+  
+  plot_3d
+} else {
+  # Fallback to basic 3D scatterplot
+  plot(runners_data$vo2_max, runners_data$race_time_10k,
+       xlab = "VO₂max (ml/kg/min)", ylab = "10K Race Time (minutes)",
+       main = "VO₂max vs Performance", pch = 19, col = as.factor(runners_data$gender))
+  legend("topright", legend = levels(as.factor(runners_data$gender)), 
+         col = 1:2, pch = 19)
+}
 ```
 
 ---
