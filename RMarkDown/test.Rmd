@@ -362,7 +362,7 @@ kable(
 
 # Interactive 3D Visualization
 
-```{r 3d-plot, fig.cap="Interactive 3D visualization of the relationship between VO₂max, running economy, and performance"}
+```{r 3d-plot, fig.cap="Interactive 3D visualization of the relationship between VO₂max, running economy, and performance", fig.width=8, fig.height=6}
 if(require("plotly", quietly = TRUE)) {
   plot_3d <- plot_ly(
     runners_data, 
@@ -375,18 +375,22 @@ if(require("plotly", quietly = TRUE)) {
     text = ~paste("Subject:", subject_id, 
                   "<br>Gender:", gender,
                   "<br>Training:", training_volume, "hrs/week"),
-    hovertemplate = "%{text}<extra></extra>"
+    hovertemplate = "%{text}<extra></extra>",
+    width = 700,
+    height = 500
   ) 
   
   plot_3d <- plot_3d %>%
     add_markers() %>%
     layout(
-      title = "3D Relationship: VO₂max, Running Economy, and Performance",
+      title = list(text = "3D Relationship: VO₂max, Running Economy, and Performance", 
+                   font = list(size = 14)),
       scene = list(
         xaxis = list(title = "VO₂max (ml/kg/min)"),
         yaxis = list(title = "Running Economy (ml O₂/kg/min)"),
         zaxis = list(title = "10K Race Time (minutes)")
-      )
+      ),
+      margin = list(l = 0, r = 0, b = 0, t = 40)
     )
   
   plot_3d
