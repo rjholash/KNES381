@@ -12,7 +12,6 @@ output:
     fig_height: 6
   word_document: default
   pdf_document: default
-bibliography: references.bib
 ---
 
 ```{r setup, include=FALSE}
