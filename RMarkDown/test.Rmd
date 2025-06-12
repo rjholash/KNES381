@@ -7,7 +7,6 @@ output:
     toc: true
     fig_width: 10
     fig_height: 6
-    always_allow_html: true
   html_document:
     theme: flatly
     toc: true
@@ -17,6 +16,7 @@ output:
     fig_height: 6
   pdf_document: default
 bibliography: references.bib
+always_allow_html: yes
 ---
 
 ```{r setup, include=FALSE}
