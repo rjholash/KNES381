@@ -14,7 +14,8 @@ output:
     toc: true
     fig_width: 10
     fig_height: 6
-  pdf_document: default
+  pdf_document: 
+    latex_engine: xelatex
 bibliography: references.bib
 always_allow_html: yes
 ---
@@ -47,9 +48,9 @@ This document demonstrates advanced data analysis techniques commonly used in ex
 
 ## What is Running Economy?
 
-**Running economy** is defined as the steady-state oxygen consumption (VO₂) at a given submaximal running speed [@saunders2004factors]. It represents the metabolic cost of running and is a key predictor of distance running performance [@barnes2013running]. Better running economy means lower oxygen consumption at the same speed, indicating greater efficiency.
+**Running economy** is defined as the steady-state oxygen consumption (VO$_2$) at a given submaximal running speed [@saunders2004factors]. It represents the metabolic cost of running and is a key predictor of distance running performance [@barnes2013running]. Better running economy means lower oxygen consumption at the same speed, indicating greater efficiency.
 
-> *"Running economy is considered one of the three primary physiological determinants of distance running performance, alongside VO₂max and lactate threshold"* [@bassett2000limiting].
+> *"Running economy is considered one of the three primary physiological determinants of distance running performance, alongside VO$_2$max and lactate threshold"* [@bassett2000limiting].
 
 ---
 
