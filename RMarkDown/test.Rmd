@@ -3,15 +3,15 @@ title: "Exercise Physiology Data Analysis: Running Economy and Performance"
 author: "Dr. J. Holash"
 date: "`r Sys.Date()`"
 output:
-  word_document: 
-    toc: true
-    fig_width: 10
-    fig_height: 6
   html_document:
     theme: flatly
     toc: true
     toc_float: true
     code_folding: hide
+    fig_width: 10
+    fig_height: 6
+  word_document: 
+    toc: true
     fig_width: 10
     fig_height: 6
   pdf_document: default
