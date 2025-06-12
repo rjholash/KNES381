@@ -7,6 +7,7 @@ output:
     toc: true
     fig_width: 10
     fig_height: 6
+    always_allow_html: true
   html_document:
     theme: flatly
     toc: true
@@ -16,7 +17,6 @@ output:
     fig_height: 6
   pdf_document: default
 bibliography: references.bib
-always_allow_html: true
 ---
 
 ```{r setup, include=FALSE}
@@ -28,13 +28,21 @@ knitr::opts_chunk$set(
 )
 
 # Load required libraries with error handling
-required_packages <- c("ggplot2", "dplyr", "plotly", "DT", "knitr", "kableExtra", "corrplot", "gridExtra", "broom")
+required_packages <- c("ggplot2", "dplyr", "plotly", "DT", "knitr", "kableExtra", "corrplot", "gridExtra", "broom", "webshot2")
 
 for(pkg in required_packages) {
   if(!require(pkg, character.only = TRUE, quietly = TRUE)) {
     cat("Installing package:", pkg, "\n")
     install.packages(pkg, repos = "https://cran.rstudio.com/")
     library(pkg, character.only = TRUE)
+  }
+}
+
+# Install phantomjs for webshot if needed
+if(require("webshot2", quietly = TRUE)) {
+  if(!webshot2::webshot_available()) {
+    cat("Installing Chrome/Chromium for webshot2...\n")
+    # webshot2 uses Chrome/Chromium which should be available
   }
 }
 ```
