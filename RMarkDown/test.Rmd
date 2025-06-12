@@ -38,13 +38,7 @@ for(pkg in required_packages) {
   }
 }
 
-# Install phantomjs for webshot if needed
-if(require("webshot2", quietly = TRUE)) {
-  if(!webshot2::webshot_available()) {
-    cat("Installing Chrome/Chromium for webshot2...\n")
-    # webshot2 uses Chrome/Chromium which should be available
-  }
-}
+# webshot2 should work automatically if available
 ```
 
 # Introduction to Exercise Physiology Data Analysis
