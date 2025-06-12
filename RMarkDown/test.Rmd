@@ -24,13 +24,16 @@ knitr::opts_chunk$set(
   dpi = 300
 )
 
-# Load required libraries
-library(ggplot2)
-library(dplyr)
-library(plotly)
-library(DT)
-library(knitr)
-library(kableExtra)
+# Load required libraries with error handling
+required_packages <- c("ggplot2", "dplyr", "plotly", "DT", "knitr", "kableExtra", "corrplot", "gridExtra", "broom")
+
+for(pkg in required_packages) {
+  if(!require(pkg, character.only = TRUE, quietly = TRUE)) {
+    cat("Installing package:", pkg, "\n")
+    install.packages(pkg, repos = "https://cran.rstudio.com/")
+    library(pkg, character.only = TRUE)
+  }
+}
 ```
 
 # Introduction to Exercise Physiology Data Analysis
@@ -55,52 +58,38 @@ set.seed(42) # For reproducible results
 # Generate realistic physiological data for 50 trained runners
 n_subjects <- 50
 
-# Create correlated physiological variables
+# Create base physiological variables
 runners_data <- data.frame(
   subject_id = 1:n_subjects,
   age = round(rnorm(n_subjects, mean = 28, sd = 6)),
   body_mass = round(rnorm(n_subjects, mean = 65, sd = 8), 1),
   height = round(rnorm(n_subjects, mean = 175, sd = 8), 1),
   vo2_max = round(rnorm(n_subjects, mean = 58, sd = 6), 1),
-  
-  # Running economy at 12 km/h (inversely related to performance)
   running_economy_12kmh = round(rnorm(n_subjects, mean = 180, sd = 15), 1),
-  
-  # Training volume (hours per week)
   training_volume = round(rnorm(n_subjects, mean = 8, sd = 2.5), 1),
-  
-  # Years of training experience
   training_experience = round(rnorm(n_subjects, mean = 8, sd = 4)),
-  
-  # Gender
   gender = sample(c("Male", "Female"), n_subjects, replace = TRUE, prob = c(0.6, 0.4))
-) %>%
-  mutate(
-    # Calculate BMI
-    bmi = round(body_mass / (height/100)^2, 1),
-    
-    # 10K race time (minutes) - influenced by VO2max and running economy
-    race_time_10k = round(30 + (200 - vo2_max) * 0.3 + (running_economy_12kmh - 160) * 0.1 + 
-                          rnorm(n_subjects, 0, 2), 1),
-    
-    # Performance category based on 10K time
-    performance_level = case_when(
-      race_time_10k < 35 -> "Elite",
-      race_time_10k < 40 -> "Competitive",
-      race_time_10k < 45 -> "Recreational",
-      TRUE -> "Novice"
-    ),
-    
-    # Running speed at lactate threshold (km/h)
-    lt_speed = round(12 + (vo2_max - 58) * 0.2 + rnorm(n_subjects, 0, 1), 1)
-  )
+)
+
+# Calculate derived variables
+runners_data$bmi <- round(runners_data$body_mass / (runners_data$height/100)^2, 1)
+
+# Calculate 10K race time based on physiology
+runners_data$race_time_10k <- round(30 + (200 - runners_data$vo2_max) * 0.3 + 
+                                   (runners_data$running_economy_12kmh - 160) * 0.1 + 
+                                   rnorm(n_subjects, 0, 2), 1)
+
+# Create performance categories
+runners_data$performance_level <- ifelse(runners_data$race_time_10k < 35, "Elite",
+                                        ifelse(runners_data$race_time_10k < 40, "Competitive",
+                                               ifelse(runners_data$race_time_10k < 45, "Recreational", "Novice")))
+
+# Calculate lactate threshold speed
+runners_data$lt_speed <- round(12 + (runners_data$vo2_max - 58) * 0.2 + rnorm(n_subjects, 0, 1), 1)
 
 # Display summary statistics
-runners_data %>%
-  select(age, body_mass, vo2_max, running_economy_12kmh, race_time_10k, training_volume) %>%
-  summary() %>%
-  kable(caption = "Summary Statistics for Physiological Variables") %>%
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+summary_data <- runners_data[, c("age", "body_mass", "vo2_max", "running_economy_12kmh", "race_time_10k", "training_volume")]
+kable(summary(summary_data), caption = "Summary Statistics for Physiological Variables")
 ```
 
 ---
@@ -110,22 +99,20 @@ runners_data %>%
 ## Interactive Data Table
 
 ```{r interactive-table}
-runners_data %>%
-  select(subject_id, gender, age, vo2_max, running_economy_12kmh, 
-         race_time_10k, performance_level, training_volume) %>%
+# Create interactive data table
+table_data <- runners_data[, c("subject_id", "gender", "age", "vo2_max", "running_economy_12kmh", 
+                              "race_time_10k", "performance_level", "training_volume")]
+
+if(require("DT", quietly = TRUE)) {
   datatable(
+    table_data,
     caption = "Complete Dataset of Runner Characteristics",
     filter = "top",
-    options = list(
-      pageLength = 10,
-      scrollX = TRUE,
-      initComplete = JS(
-        "function(settings, json) {",
-        "$(this.api().table().header()).css({'background-color': '#337ab7', 'color': '#fff'});",
-        "}")
-    )
-  ) %>%
-  formatRound(columns = c("vo2_max", "running_economy_12kmh", "race_time_10k"), digits = 1)
+    options = list(pageLength = 10, scrollX = TRUE)
+  )
+} else {
+  kable(head(table_data, 10), caption = "Sample of Runner Characteristics (first 10 rows)")
+}
 ```
 
 ---
@@ -138,24 +125,29 @@ Let's examine the relationships between key physiological variables:
 
 ```{r correlation-matrix, fig.cap="Correlation matrix showing relationships between physiological variables"}
 # Select numeric variables for correlation
-numeric_vars <- runners_data %>%
-  select(age, body_mass, vo2_max, running_economy_12kmh, race_time_10k, 
-         training_volume, training_experience, lt_speed)
+numeric_vars <- runners_data[, c("age", "body_mass", "vo2_max", "running_economy_12kmh", 
+                                "race_time_10k", "training_volume", "training_experience", "lt_speed")]
 
 # Calculate correlation matrix
 cor_matrix <- cor(numeric_vars, use = "complete.obs")
 
 # Create correlation heatmap
-library(corrplot)
-corrplot(cor_matrix, 
-         method = "color",
-         type = "upper",
-         order = "hclust",
-         tl.cex = 0.8,
-         tl.col = "black",
-         tl.srt = 45,
-         addCoef.col = "black",
-         number.cex = 0.7)
+if(require("corrplot", quietly = TRUE)) {
+  corrplot(cor_matrix, 
+           method = "color",
+           type = "upper",
+           order = "hclust",
+           tl.cex = 0.8,
+           tl.col = "black",
+           tl.srt = 45,
+           addCoef.col = "black",
+           number.cex = 0.7)
+} else {
+  # Fallback to basic heatmap if corrplot not available
+  heatmap(cor_matrix, 
+          col = colorRampPalette(c("blue", "white", "red"))(100),
+          main = "Correlation Matrix")
+}
 ```
 
 ## Key Findings from Correlation Analysis:
