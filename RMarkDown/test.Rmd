@@ -166,7 +166,7 @@ if(require("corrplot", quietly = TRUE)) {
 
 ## Interactive Scatter Plot: Running Economy vs Performance
 
-```{r interactive-scatter, fig.cap="Interactive scatter plot showing the relationship between running economy and 10K race performance"}
+```{r interactive-scatter, fig.cap="Interactive scatter plot showing the relationship between running economy and 10K race performance", fig.width=8, fig.height=6}
 p1 <- ggplot(runners_data, aes(x = running_economy_12kmh, y = race_time_10k, 
                                color = performance_level, size = vo2_max,
                                text = paste("Subject:", subject_id,
@@ -187,14 +187,15 @@ p1 <- ggplot(runners_data, aes(x = running_economy_12kmh, y = race_time_10k,
   ) +
   theme_minimal() +
   theme(
-    plot.title = element_text(size = 16, face = "bold"),
-    plot.subtitle = element_text(size = 12, color = "gray60"),
+    plot.title = element_text(size = 14, face = "bold"),
+    plot.subtitle = element_text(size = 11, color = "gray60"),
     legend.position = "bottom"
   )
 
-# Convert to interactive plot
+# Convert to interactive plot with size constraints
 if(require("plotly", quietly = TRUE)) {
-  ggplotly(p1, tooltip = "text")
+  ggplotly(p1, tooltip = "text", width = 700, height = 500) %>%
+    layout(margin = list(l = 50, r = 50, b = 100, t = 80))
 } else {
   print(p1)
 }
