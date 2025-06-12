@@ -12,6 +12,7 @@ output:
     fig_height: 6
   word_document: default
   pdf_document: default
+bibliography: references.bib
 ---
 
 ```{r setup, include=FALSE}
@@ -41,9 +42,9 @@ This document demonstrates advanced data analysis techniques commonly used in ex
 
 ## What is Running Economy?
 
-**Running economy** is defined as the steady-state oxygen consumption (VO₂) at a given submaximal running speed. It represents the metabolic cost of running and is a key predictor of distance running performance. Better running economy means lower oxygen consumption at the same speed, indicating greater efficiency.
+**Running economy** is defined as the steady-state oxygen consumption (VO₂) at a given submaximal running speed [@saunders2004factors]. It represents the metabolic cost of running and is a key predictor of distance running performance [@barnes2013running]. Better running economy means lower oxygen consumption at the same speed, indicating greater efficiency.
 
-> *"Running economy is considered one of the three primary physiological determinants of distance running performance, alongside VO₂max and lactate threshold."*
+> *"Running economy is considered one of the three primary physiological determinants of distance running performance, alongside VO₂max and lactate threshold"* [@bassett2000limiting].
 
 ---
 
@@ -399,11 +400,11 @@ if(require("plotly", quietly = TRUE)) {
 
 ## 🏃‍♂️ **Physiological Insights**
 
-1. **VO₂max remains king**: Strong predictor of endurance performance (r = `r round(cor(runners_data$vo2_max, runners_data$race_time_10k), 2)`)
+1. **VO₂max remains king**: Strong predictor of endurance performance [@joyner1991endurance] (r = `r round(cor(runners_data$vo2_max, runners_data$race_time_10k), 2)`)
 
-2. **Running economy matters**: Accounts for significant performance variance beyond VO₂max alone
+2. **Running economy matters**: Accounts for significant performance variance beyond VO₂max alone [@saunders2004factors]
 
-3. **Training dose-response**: Higher training volumes associated with better physiological adaptations
+3. **Training dose-response**: Higher training volumes associated with better physiological adaptations [@midgley2007training]
 
 ## 📊 **Data Science Applications in Exercise Physiology**
 
@@ -430,8 +431,10 @@ This document demonstrates several advanced R Markdown features:
 - **Statistical rigor**: Multiple regression, correlation analysis, model diagnostics
 - **Reproducible research**: Seed setting, version control ready
 
-The combination of exercise science domain knowledge and advanced data visualization creates an engaging learning experience that prepares students for modern sports science research.
+The combination of exercise science domain knowledge and advanced data visualization creates an engaging learning experience that prepares students for modern sports science research [@midgley2007training].
 
 ---
+
+# References
 
 *This analysis was generated using R Markdown with real-time data processing and interactive visualizations. All data is simulated for educational purposes.*
