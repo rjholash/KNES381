@@ -32,7 +32,7 @@ Course datasets and analysis materials:
 
 ### 🌐 Web Examples (`/web_examples/`)
 HTML demonstrations:
-- `periodic-sports-table.html` - Sports-themed periodic table
+- `periodic-sports-table.html` - Sports-themed periodic table [preview periodic-sportstable.html](/web_examples/periodic-sports-table.html)
 - `periodic-table-sports2.html` - Enhanced interactive version
 - `Read_vo2_data-Plot.html` - Interactive VO₂ visualization
 
